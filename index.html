@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>茶聊-TeaChat</title>
+</head>
+
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+        font-family: kaiti;
+    }
+
+    body,
+    html {
+        width: 100%;
+        height: 100%;
+        min-width: 400px;
+        min-height: 600px;
+        background-image: url('./img/bg_01.jpg');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+    }
+
+    #userinfo input,
+    #sumbit {
+        display: block;
+        margin: 0 auto;
+        padding: 3px 2.5vh;
+        height: 5vh;
+        width: 60vw;
+        max-width: 600px;
+        border-radius: calc(2.5vh + 1.5px);
+        border: none;
+        outline: none;
+        background-color: rgba(255, 255, 255, .5);
+        backdrop-filter: blur(20px);
+        color: #5e5e5e;
+        font-size: 2.5vh;
+        transition: all 0.2s;
+    }
+
+    #userinfo input:focus {
+        background-color: rgba(255, 255, 255, .8);
+    }
+
+    #sumbit {
+        font-weight: 900;
+    }
+
+    #sumbit:active {
+        background-color: #FFF;
+    }
+
+    #loginHint,
+    #pawdHint {
+        display: block;
+        color: #fff;
+        padding: 0 2.5vh;
+        margin-bottom: 2.5vh;
+        font-size: 2vh;
+        transition: all .2s;
+    }
+
+    #signWall {
+        position: absolute;
+        width: 60vw;
+        height: 30vh;
+        padding: 10vh 20vw;
+    }
+
+    #signWall h1,
+    #signWall p {
+        font-size: 4vh;
+        font-family: 'youyuan';
+        color: rgba(255, 255, 255, .8);
+        writing-mode: vertical-rl;
+        float: right;
+    }
+
+    #signWall p {
+        font-size: 2vh;
+        margin-right: 66px;
+        line-height: 4vh;
+    }
+
+    #copyright {
+        font-size: 1.2vh;
+        display: block;
+        position: absolute;
+        bottom: 2vh;
+        text-align: center;
+        width: 100vw;
+        color: rgba(255, 255, 255, .8);
+    }
+</style>
+
+<body>
+    <div id="signWall">
+        <h1>茶聊-TeaChat</h1>
+        <p>
+            抽出一杯茶的时间<br>
+            和世界聊聊天
+        </p>
+    </div>
+    <div style="width: 100vw; height: 50vh;"></div>
+
+    <form action="" id="userinfo" name="userinfo">
+        <input id="user" type="text" placeholder="账号" maxlength="16">
+        <p id="loginHint"></p>
+        <input id="pawd" type="password" placeholder="密码" maxlength="16">
+        <p id="pawdHint"></p>
+        <input id="repPawd" type="password" placeholder="请重复密码" maxlength="16" style="display: none;">
+        <div style="width: 100vw; height: 10vh;"></div>
+        <input type="button" id="sumbit" onclick="sumbitForm()" value="登录">
+    </form>
+
+    <p id="copyright">Copyright for <a href="http://www.github.com/Fc-404">Fc-404</a></p>
+</body>
+
+<script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.js"></script>
+<script>
+    var AJAXObj = null;
+    //创建AJAX对象
+    if (window.XMLHttpRequest) {
+        AJAXObj = new XMLHttpRequest();
+    }
+    else {
+        alert("不支持此浏览器");
+    }
+
+    /**
+     * 使提示文字和输入框对齐
+     */
+    (function () {
+        var user = document.getElementById('user');
+        var userStyle = window.getComputedStyle(user);
+        var loginHint = document.getElementById('loginHint');
+        var pawdHint = document.getElementById('pawdHint');
+        loginHint.style.marginLeft = userStyle.marginLeft;
+        pawdHint.style.marginLeft = userStyle.marginLeft;
+        loginHint.style.width = userStyle.width;
+        pawdHint.style.width = userStyle.width;
+    }());
+
+    /**
+     * 实时检测用户名和重复密码
+     */
+    (function () {
+        var loginHint = document.getElementById('loginHint');
+        var pawdHint = document.getElementById('pawdHint');
+        var user = document.getElementById('user');
+        var sumbit = document.getElementById('sumbit');
+        var pawd = document.getElementById('pawd');
+        var repPawd = document.getElementById('repPawd');
+        var ifClickRepPw = false;
+
+        //账号输入事件
+        user.oninput = function (m) {
+            var userStr = this.value;
+            AJAXObj.open("GET", "api/db.php?type=isuser&user=" + userStr, true);
+            AJAXObj.send();
+            AJAXObj.onreadystatechange = function () {
+                if (AJAXObj.readyState == 4 && AJAXObj.status == 200) {
+                    if (AJAXObj.responseText == "true") {
+                        loginHint.innerText = "此账号已注册，可直接登录";
+                        loginHint.style.color = "#0f0";
+                        sumbit.value = '登录';
+                        repPawd.style.display = "none";
+                    }
+                    else {
+                        loginHint.innerText = "此账号未注册，可进行注册";
+                        loginHint.style.color = "#ff0";
+                        sumbit.value = '注册';
+                        repPawd.style.display = "block";
+                    }
+
+                    //如果用户名为空，则不提示
+                    if (user.value == "") {
+                        loginHint.innerText = "";
+                    }
+                }
+            };
+        };
+
+        repPawd.oninput = pawd.oninput = function () {
+            var repPw = repPawd.value;
+            var pw = pawd.value;
+            if ((repPw != pw) && ifClickRepPw) {
+                pawdHint.innerText = "两次密码不一致";
+                pawdHint.style.color = "#f00";
+            } else if (ifClickRepPw) {
+                pawdHint.innerText = "正确";
+                pawdHint.style.color = "#0f0";
+            }
+
+            if (this.id == "repPawd"){
+                ifClickRepPw = true;
+            }
+        }
+    }());
+
+    /**
+     * 账号和密码检测
+     */
+    var checkName = function (user, pawd) {
+        if (user == "" || pawd == "") {
+            alert("\n不可以为空\n\nCan't be empty\n\n");
+            return false;
+        }
+        if (!/^[(\w+)\u4e00-\u9fa5]{1,16}$/.test(user)) {
+            alert("\n账号需由1-16位数字、字母、下划线或汉字组成\n\nAccounts should consist of 1-16 digits, letters, underscores, or Chinese characters\n\n");
+            return false;
+        }
+        if (!/^(\w+){6,16}$/.test(pawd)) {
+            alert("\n密码需由6-16位数字、字母、下划线组成\n\nThe password should consist of 6-16 digits, letters, and underscores\n\n");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 登录或注册
+     */
+    function sumbitForm() {
+        var user = this.user.value;
+        var pawd = this.pawd.value;
+        var id = md5(user + pawd + (new Date()).getMinutes());
+        console.log(id);
+
+        if (!checkName(user, pawd))
+            return false;
+
+        if (this.sumbit.value == "注册") {
+            var repPawd = this.repPawd.value;
+            if (pawd != repPawd) {
+                alert("\n你两次输入的密码不一致\n\nThe passwords you typed in don't match\n\n");
+                return false;
+            }
+
+            AJAXObj.open("GET", "api/db.php?type=login&user=" + user + "&pawd=" + pawd, true);
+            AJAXObj.send();
+            AJAXObj.onreadystatechange = function () {
+                if (AJAXObj.readyState == 4 && AJAXObj.status == 200) {
+                    if (AJAXObj.responseText == "true") {
+                        alert("注册成功");
+                        window.location.href = 'readme.html';
+                    } else {
+                        alert("注册失败");
+                    }
+                }
+            }
+        } else {
+            AJAXObj.open("GET", "api/db.php?type=logup&user=" + user + "&pawd=" + pawd, true);
+            AJAXObj.send();
+            AJAXObj.onreadystatechange = function () {
+                if (AJAXObj.readyState == 4 && AJAXObj.status == 200) {
+                    if (AJAXObj.responseText == "true") {
+                        alert("登录成功");
+                        window.location.href = 'user.php?user=' + user + '&id=' + id;
+                    } else {
+                        alert("登录失败");
+                    }
+                }
+            }
+        }
+        return false;
+    }
+</script>
+
+</html>
