@@ -28,9 +28,13 @@
 
     /* 头部信息 */
     #head {
+        position: fixed;
+        z-index: 999999;
         width: 100vw;
         height: 10vh;
         backdrop-filter: saturate(120%) blur(20px);
+        box-shadow: .2rem .2rem 1rem .1rem rgba(0, 0, 0, .5);
+        background-color: rgba(255, 255, 255, .2);
     }
 
     #head #headIcon {
@@ -76,6 +80,8 @@
         margin: 0 auto 5vh;
         border-radius: 2vh;
         overflow: hidden;
+        box-shadow: .2rem .2rem 1rem .1rem rgba(0, 0, 0, .5);
+        background-color: rgba(255, 255, 255, .2);
     }
 
     .card .cardBg {
@@ -98,7 +104,7 @@
         left: 2vh;
         border-radius: 50%;
         border: 2px solid white;
-        font-size: 10vh;
+        font-size: 8vh;
         line-height: 12vh;
         text-align: center;
     }
@@ -109,8 +115,8 @@
 
     .card .userName {
         color: rgba(0, 0, 0, .5);
-        font-size: 4vh;
-        line-height: 8vh;
+        font-size: 2vh;
+        line-height: 4vh;
         text-align: right;
         padding: 0 2vh 0 16vh;
     }
@@ -119,7 +125,7 @@
 <body>
     <!--背景-->
     <div id="backgroundImg">
-        <img src="./img/bg_01.jpg">
+        <img src="../img/bg_01.gif">
     </div>
 
     <!--头部信息-->
@@ -132,38 +138,62 @@
             <div id="onlineIcon"></div>
             <div id="onlineText">在线</div>
         </div>
-
     </div>
+    <div style="width: 100%; height: 10vh;"></div>
 
     <!--在线信息-->
     <div id="online">
         <div style="width: 100%; height: 5vh;"></div>
+        <!--用户信息模板-->
         <div class="card">
             <div class="cardBg">
                 <div class="userIcon">
-                    <div>U</div>
+                    <div>空</div>
                 </div>
             </div>
             <div class="cardInfo">
                 <div class="userName">
-                    User
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="cardBg">
-                <div class="userIcon">
-                    <div>U</div>
-                </div>
-            </div>
-            <div class="cardInfo">
-                <div class="userName">
-                    User
+                    还没有人上线呢
                 </div>
             </div>
         </div>
     </div>
 </body>
+
+<!--检查用户Url-->
+<?php
+require_once('../dataIO/DB.php');
+require_once('../dataIO/DBOP.php');
+
+$user = $_GET['user'];
+$id = $_GET['id'];
+
+if (empty($user) || empty($id))
+{
+    echo '<script>alert("传入参数不正确\n请重新登录");window.location.href="../index.html"</script>';
+}
+
+$DBOP = new DBOP(DB::create());
+
+$userInfo = $DBOP->R_user($user);
+if ($userInfo)
+{
+    $userPawd = $userInfo['pawd'];
+}
+else
+{
+    echo '<script>alert("传入参数不正确\n请重新登录");window.location.href="../index.html"</script>';
+}
+
+$hours = (int)getdate()['hours'];
+$expectID = md5($user . $userPawd . ($hours < 10 ? (0 . $hours) : $hours));
+
+if ($expectID != $id)
+{
+    echo '<script>alert("传入参数不正确\n请重新登录");window.location.href="../index.html"</script>';
+}
+?>
+
 <script>
 
 </script>

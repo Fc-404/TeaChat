@@ -228,7 +228,7 @@
     function sumbitForm() {
         var user = this.user.value;
         var pawd = this.pawd.value;
-        var id = md5(user + pawd + (new Date()).getMinutes());
+        var id = md5(user + pawd + (new Date()).getHours());
         console.log(id);
 
         if (!checkName(user, pawd))
@@ -247,7 +247,7 @@
                 if (AJAXObj.readyState == 4 && AJAXObj.status == 200) {
                     if (AJAXObj.responseText == "true") {
                         alert("注册成功");
-                        window.location.href = 'readme.html';
+                        window.location.href = 'page/readme.html';
                     } else {
                         alert("注册失败");
                     }
@@ -260,7 +260,7 @@
                 if (AJAXObj.readyState == 4 && AJAXObj.status == 200) {
                     if (AJAXObj.responseText == "true") {
                         alert("登录成功");
-                        window.location.href = 'user.php?user=' + user + '&id=' + id;
+                        window.location.href = 'page/user.php?user=' + user + '&id=' + id;
                     } else {
                         alert("登录失败");
                     }
